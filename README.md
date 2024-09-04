@@ -89,6 +89,8 @@ EXPOSE $PORT
 # Define el comando de inicio para el contenedor, que ejecutará la aplicación Java.
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 
+```
+
 ## Como ejecutar
 
 - **Clona el repositorio.**:
@@ -96,4 +98,3 @@ ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 - **Construye y ejecuta los contenedores con Docker Compose:**:
 ### docker-compose up --d
 - **Esto levantará los servicios de la aplicación y la base de datos en contenedores Docker.:**:
-
