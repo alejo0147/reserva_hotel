@@ -1,0 +1,41 @@
+services:
+  mysql8:
+    image: mysql:8
+    container_name: mysql8
+    environment:
+      MYSQL_ROOT_PASSWORD: sasa
+      MYSQL_DATABASE: hotel_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - data-mysql:/var/lib/mysql
+    networks:
+      - spring-hotel
+    restart: always
+
+  app:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    container_name: hotel-app
+    image: alejo01478/hotel:latest
+    environment:
+      PORT: 8009
+      DB_HOST: mysql8:3306
+      DB_DATABASE: hotel_db
+      DB_USERNAME: root
+      DB_PASS: sasa
+    ports:
+      - "8009:8009"
+    depends_on:
+      - mysql8
+    networks:
+      - spring-hotel
+    restart: always
+
+networks:
+  spring-hotel:
+    driver: bridge
+
+volumes:
+  data-mysql:
