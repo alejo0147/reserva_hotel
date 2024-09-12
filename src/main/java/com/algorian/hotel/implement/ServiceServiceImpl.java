@@ -53,7 +53,7 @@ public class ServiceServiceImpl implements IServiceService {
     }
 
     @Override
-    public ResponseEntity<?> save(ServiceDTO serviceDTO) {
+    public ResponseEntity<?> save(@Validated(ServiceDTO.CreateGroup.class) ServiceDTO serviceDTO) {
         ServiceT serviceT = ServiceT.builder()
                 .name(serviceDTO.getName())
                 .description(serviceDTO.getDescription())
@@ -70,7 +70,7 @@ public class ServiceServiceImpl implements IServiceService {
     }
 
     @Override
-    public ResponseEntity<?> update(ServiceDTO serviceDTO, Long id) {
+    public ResponseEntity<?> update(@Validated(ServiceDTO.UpdateGroup.class) ServiceDTO serviceDTO, Long id) {
         Optional<ServiceT> find = _serviceRepository.findById(id);
         if (find.isPresent()){
             ServiceT serviceT = find.get();
