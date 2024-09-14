@@ -24,8 +24,6 @@ public class Cliente {
 
     private String email;
 
-    private String password;
-
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)

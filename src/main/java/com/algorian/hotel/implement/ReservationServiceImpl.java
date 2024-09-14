@@ -7,7 +7,7 @@ import com.algorian.hotel.exception.DateValidationException;
 import com.algorian.hotel.models.*;
 import com.algorian.hotel.repository.IReservationRepository;
 import com.algorian.hotel.repository.IServiceRepository;
-import com.algorian.hotel.repository.IUserTRepository;
+import com.algorian.hotel.repository.IClienteRepository;
 import com.algorian.hotel.service.IReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class ReservationServiceImpl implements IReservationService {
 
     private final IReservationRepository _reservationRepository;
-    private final IUserTRepository _userTRepository;
+    private final IClienteRepository _clienteRepository;
     private final IServiceRepository _serviceRepository;
 
     @Override
@@ -34,8 +34,8 @@ public class ReservationServiceImpl implements IReservationService {
         List<Reservation> reservationList = _reservationRepository.findAll();
         List<ReservationListarDTO> reservationDTOList = reservationList.stream()
                 .map(reservation -> {
-                    String userName = reservation.getCliente().getFullName(); // Solo el nombre del usuario
-                    String serviceDescription = reservation.getServiceT().getDescription(); // Solo la descripción del servicio
+                    String userName = reservation.getCliente().getFullName();
+                    String serviceDescription = reservation.getServiceT().getDescription();
 
                     return ReservationListarDTO.builder()
                             .id(reservation.getId())
@@ -57,7 +57,7 @@ public class ReservationServiceImpl implements IReservationService {
             Reservation reservation = find.get();
 
             // Recuperar el usuario y servicio por sus IDs
-            Cliente user = _userTRepository.findById(reservation.getCliente().getId())
+            Cliente user = _clienteRepository.findById(reservation.getCliente().getId())
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
             ServiceT service = _serviceRepository.findById(reservation.getServiceT().getId())
@@ -87,8 +87,8 @@ public class ReservationServiceImpl implements IReservationService {
             throw new DateValidationException("La fecha de finalización no puede ser anterior a la fecha de inicio.");
         }
 
-        Cliente cliente = _userTRepository.findByEmail(reservationDTO.getCliente().getEmail())
-                .orElseGet(() -> _userTRepository.save(reservationDTO.getCliente()));
+        Cliente cliente = _clienteRepository.findByEmail(reservationDTO.getCliente().getEmail())
+                .orElseGet(() -> _clienteRepository.save(reservationDTO.getCliente()));
 
         ServiceT serviceT = _serviceRepository.findById(reservationDTO.getServiceId())
                 .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
@@ -188,7 +188,7 @@ public class ReservationServiceImpl implements IReservationService {
 
     @Override
     public ResponseEntity<List<ReservationListarDTO>> findByUserName(String userName) {
-        Optional<Cliente> userT = _userTRepository.findByFullName(userName);
+        Optional<Cliente> userT = _clienteRepository.findByFullName(userName);
         if (userT.isPresent()){
             Long userId = userT.get().getId();
             List<Reservation> reservations = _reservationRepository.findByUserTId(userId);
@@ -235,7 +235,7 @@ public class ReservationServiceImpl implements IReservationService {
 
     public Cliente findOrCreateUser(Cliente cliente) {
         // Buscar usuario por correo electrónico
-        Optional<Cliente> existingUser = _userTRepository.findByEmail(cliente.getEmail());
+        Optional<Cliente> existingUser = _clienteRepository.findByEmail(cliente.getEmail());
 
         // Si el usuario ya existe, devolverlo
         if (existingUser.isPresent()) {
@@ -243,6 +243,6 @@ public class ReservationServiceImpl implements IReservationService {
         }
 
         // Si el usuario no existe, guardarlo y devolver el nuevo usuario
-        return _userTRepository.save(cliente);
+        return _clienteRepository.save(cliente);
     }
 }
