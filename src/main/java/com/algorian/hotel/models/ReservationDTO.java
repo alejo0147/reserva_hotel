@@ -1,6 +1,6 @@
 package com.algorian.hotel.models;
 
-import jakarta.validation.constraints.NotBlank;
+import com.algorian.hotel.entity.Cliente;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,19 +19,19 @@ import java.time.LocalDate;
 @ToString
 public class ReservationDTO {
 
-    @NotNull(groups = UserTDTO.UpdateGroup.class, message = "El campo 'id' es obligatorio para la actualización.")
+    @NotNull(groups = UpdateGroup.class, message = "El campo 'id' es obligatorio para la actualización.")
     private Long id;
 
     private LocalDate dateReservation;
 
-    @NotNull(groups = {UserTDTO.CreateGroup.class, UserTDTO.UpdateGroup.class}, message = "El campo 'dateStart' no puede estar en blanco.")
+    @NotNull(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'dateStart' no puede estar en blanco.")
     private LocalDate dateStart;
 
-    @NotNull(groups = {UserTDTO.CreateGroup.class, UserTDTO.UpdateGroup.class}, message = "El campo 'dateEnd' no puede estar en blanco.")
+    @NotNull(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'dateEnd' no puede estar en blanco.")
     private LocalDate dateEnd;
 
     @NotNull(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'userId' es obligatorio.")
-    private Long userId;
+    private Cliente cliente;
 
     @NotNull(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'serviceId' es obligatorio.")
     private Long serviceId;
