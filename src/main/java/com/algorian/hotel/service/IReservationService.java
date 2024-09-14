@@ -1,6 +1,7 @@
 package com.algorian.hotel.service;
 
 import com.algorian.hotel.models.ReservationDTO;
+import com.algorian.hotel.models.ReservationListarDTO;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
@@ -8,7 +9,7 @@ import java.util.List;
 
 public interface IReservationService {
 
-    ResponseEntity<List<ReservationDTO>> findAll();
+    ResponseEntity<List<ReservationListarDTO>> findAll();
 
     ResponseEntity<?> findById(Long id);
 
@@ -20,8 +21,8 @@ public interface IReservationService {
 
     ResponseEntity<List<ReservationDTO>> findByDateRange(LocalDate startDate);
 
-    ResponseEntity<List<ReservationDTO>> findByUserId(Long userId);
+    ResponseEntity<List<ReservationListarDTO>> findByUserName(String userName);
 
-    ResponseEntity<List<ReservationDTO>> findByServiceId(Long serviceId);
+    ResponseEntity<List<ReservationListarDTO>> findByServiceId(Long serviceId);
 
 }

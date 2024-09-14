@@ -27,13 +27,15 @@ public class Reservation {
     @Column(name = "date_reservation")
     private LocalDate dateReservation;
 
+    @Column(name = "date_start")
     private LocalDate dateStart;
 
+    @Column(name = "date_end")
     private LocalDate dateEnd;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private UserT userT;
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
 
     @ManyToOne
     @JoinColumn(name = "service_id")

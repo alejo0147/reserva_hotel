@@ -1,8 +1,14 @@
 package com.algorian.hotel.controller;
 
+import com.algorian.hotel.entity.Reservation;
 import com.algorian.hotel.models.ReservationDTO;
+import com.algorian.hotel.models.ReservationListarDTO;
 import com.algorian.hotel.service.IReservationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -24,24 +30,36 @@ public class ReservationController {
 
     @GetMapping
     @Operation(summary = "Obtener todas las reservaciones", description = "Devuelve una lista de todas las reservas.")
-    public ResponseEntity<List<ReservationDTO>> getAllReservations() {
+    public ResponseEntity<List<ReservationListarDTO>> getAllReservations() {
         return _reservationService.findAll();
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener reserva por ID", description = "Devuelve una reserva basado en el ID proporcionado.")
+    @Operation(summary = "Obtiene una reserva por su ID", description = "Proporciona un ID de reserva para obtener los detalles de esa reserva.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reserva encontrada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservation.class))),
+            @ApiResponse(responseCode = "404", description = "Reserva no encontrada", content = @Content)
+    })
     public ResponseEntity<?> getReservationById(@PathVariable Long id) {
         return _reservationService.findById(id);
     }
 
     @PostMapping
-    @Operation(summary = "Crear una nueva reservación", description = "Crea una nueva reservación con los detalles proporcionados.")
+    @Operation(summary = "Crear una nueva reserva", description = "Crea una nueva reservación con los detalles proporcionados.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Reserva creada exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservation.class))),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos proporcionados", content = @Content)
+    })
     public ResponseEntity<?> createReservation(@Validated(ReservationDTO.CreateGroup.class) @RequestBody ReservationDTO reservationDTO) {
         return _reservationService.save(reservationDTO);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar una reservación existente", description = "Actualiza los detalles de una reservación existente basado en el ID proporcionado.")
+    @Operation(summary = "Actualizar una reserva existente", description = "Actualiza los detalles de una reservación existente basado en el ID proporcionado.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Reserva actualizada exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservation.class))),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos proporcionados", content = @Content)
+    })
     public ResponseEntity<?> updatereservation(@Validated(ReservationDTO.UpdateGroup.class) @RequestBody ReservationDTO reservationDTO, @PathVariable Long id) {
         return _reservationService.update(reservationDTO, id);
     }
@@ -64,13 +82,17 @@ public class ReservationController {
 
     @GetMapping("/search/user/{userId}")
     @Operation(summary = "Buscar reservas por ID de usuario", description = "Busca reservas asociadas a un usuario.")
-    public ResponseEntity<List<ReservationDTO>> findByUserId(@PathVariable Long userId) {
-        return _reservationService.findByUserId(userId);
+    public ResponseEntity<List<ReservationListarDTO>> findByUserId(@PathVariable String userName) {
+        return _reservationService.findByUserName(userName);
     }
 
     @GetMapping("/search/service/{serviceId}")
     @Operation(summary = "Buscar reservas por ID de servicio", description = "Busca reservas asociadas a un servicio.")
-    public ResponseEntity<List<ReservationDTO>> findByServiceId(@PathVariable Long serviceId) {
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reserva por id de servicio encontrada exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservation.class))),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos proporcionados", content = @Content)
+    })
+    public ResponseEntity<List<ReservationListarDTO>> findByServiceId(@PathVariable Long serviceId) {
         return _reservationService.findByServiceId(serviceId);
     }
 

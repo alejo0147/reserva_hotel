@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class ReservationDetailDTO {
+public class ReservationListarDTO {
 
     @NotNull
     private Long id;
@@ -29,10 +29,8 @@ public class ReservationDetailDTO {
     @NotNull
     private LocalDate dateEnd;
 
-    @NotNull
     private String userName;
 
-    @NotNull
     private String serviceDescription;
 
 }
