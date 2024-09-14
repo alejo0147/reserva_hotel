@@ -16,16 +16,16 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class UserTDTO {
+public class ClienteDTO {
 
     @NotNull(groups = UpdateGroup.class, message = "El campo 'id' es obligatorio para la actualización.")
     private Long id;
 
+    @NotBlank(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'fullName' no puede estar en blanco.")
+    private String fullName;
+
     @Email(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'email' debe ser un email válido.")
     private String email;
-
-    @NotBlank(groups = CreateGroup.class, message = "El campo 'password' es obligatorio para la creación.")
-    private String password;
 
     public interface CreateGroup {}
 
