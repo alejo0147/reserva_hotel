@@ -1,6 +1,5 @@
 package com.algorian.hotel.controller;
 
-import com.algorian.hotel.models.ClienteDTO;
 import com.algorian.hotel.models.UserTDTO;
 import com.algorian.hotel.service.IUserTService;
 import io.swagger.v3.oas.annotations.Operation;

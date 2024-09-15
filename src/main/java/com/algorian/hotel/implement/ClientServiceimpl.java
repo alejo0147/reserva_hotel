@@ -1,10 +1,9 @@
 package com.algorian.hotel.implement;
 
-import com.algorian.hotel.entity.Cliente;
-import com.algorian.hotel.models.ClienteDTO;
-import com.algorian.hotel.repository.IClienteRepository;
-import com.algorian.hotel.service.IClienteService;
-import jakarta.validation.Valid;
+import com.algorian.hotel.entity.Client;
+import com.algorian.hotel.models.ClientDTO;
+import com.algorian.hotel.repository.IClientRepository;
+import com.algorian.hotel.service.IClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,19 +18,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 
 @Service
-public class ClienteServiceimpl implements IClienteService {
+public class ClientServiceimpl implements IClientService {
 
-    private final IClienteRepository _userTRepository;
+    private final IClientRepository _userTRepository;
 
     @Override
     @Transactional(readOnly = true)
-    public ResponseEntity<List<ClienteDTO>> findAll() {
-        List<Cliente> clienteList = _userTRepository.findAll();
-        List<ClienteDTO> userTDTOList = clienteList.stream()
-                .map(cliente -> ClienteDTO.builder()
-                        .id(cliente.getId())
-                        .fullName(cliente.getFullName())
-                        .email(cliente.getEmail())
+    public ResponseEntity<List<ClientDTO>> findAll() {
+        List<Client> clientList = _userTRepository.findAll();
+        List<ClientDTO> userTDTOList = clientList.stream()
+                .map(client -> ClientDTO.builder()
+                        .id(client.getId())
+                        .fullName(client.getFullName())
+                        .email(client.getEmail())
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(userTDTOList);
@@ -40,14 +39,14 @@ public class ClienteServiceimpl implements IClienteService {
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<?> findById(Long id) {
-        Optional<Cliente> find = _userTRepository.findById(id);
+        Optional<Client> find = _userTRepository.findById(id);
         if (find.isPresent()){
-            Cliente cliente = find.get();
+            Client client = find.get();
 
-            ClienteDTO userTDTO = ClienteDTO.builder()
-                    .id(cliente.getId())
-                    .fullName(cliente.getFullName())
-                    .email(cliente.getEmail())
+            ClientDTO userTDTO = ClientDTO.builder()
+                    .id(client.getId())
+                    .fullName(client.getFullName())
+                    .email(client.getEmail())
                     .build();
 
             return ResponseEntity.ok(userTDTO);
@@ -55,41 +54,41 @@ public class ClienteServiceimpl implements IClienteService {
         return ResponseEntity.notFound().build();
     }
 
-    @Validated(ClienteDTO.CreateGroup.class)
+    @Validated(ClientDTO.CreateGroup.class)
     @Override
     @Transactional
-    public ResponseEntity<?> save(@Validated ClienteDTO clienteDTO) {
-        Cliente cliente = Cliente.builder()
-                .fullName(clienteDTO.getFullName())
-                .email(clienteDTO.getEmail())
+    public ResponseEntity<?> save(@Validated ClientDTO clientDTO) {
+        Client client = Client.builder()
+                .fullName(clientDTO.getFullName())
+                .email(clientDTO.getEmail())
                 .build();
 
-        Cliente clienteSave = _userTRepository.save(cliente);
+        Client clientSave = _userTRepository.save(client);
 
-        ClienteDTO tdtoSave = ClienteDTO.builder()
-                .id(clienteSave.getId())
-                .fullName(clienteDTO.getFullName())
-                .email(clienteDTO.getEmail())
+        ClientDTO tdtoSave = ClientDTO.builder()
+                .id(clientSave.getId())
+                .fullName(clientDTO.getFullName())
+                .email(clientDTO.getEmail())
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(tdtoSave);
     }
 
-    @Validated(ClienteDTO.UpdateGroup.class)
+    @Validated(ClientDTO.UpdateGroup.class)
     @Override
     @Transactional
-    public ResponseEntity<?> update(@Validated ClienteDTO clienteDTO, Long id) {
-        Optional<Cliente> find = _userTRepository.findById(id);
+    public ResponseEntity<?> update(@Validated ClientDTO clientDTO, Long id) {
+        Optional<Client> find = _userTRepository.findById(id);
         if (find.isPresent()) {
-            Cliente cliente = find.get();
-            cliente.setFullName(clienteDTO.getFullName());
-            cliente.setEmail(clienteDTO.getEmail());
+            Client client = find.get();
+            client.setFullName(clientDTO.getFullName());
+            client.setEmail(clientDTO.getEmail());
 
-            Cliente updatedCliente = _userTRepository.save(cliente);
+            Client updatedClient = _userTRepository.save(client);
 
-            ClienteDTO updatedUserTDTO = ClienteDTO.builder()
-                    .id(updatedCliente.getId())
-                    .fullName(updatedCliente.getFullName())
-                    .email(updatedCliente.getEmail())
+            ClientDTO updatedUserTDTO = ClientDTO.builder()
+                    .id(updatedClient.getId())
+                    .fullName(updatedClient.getFullName())
+                    .email(updatedClient.getEmail())
                     .build();
 
             return ResponseEntity.ok(updatedUserTDTO);

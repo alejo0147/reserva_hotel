@@ -80,10 +80,14 @@ public class ReservationController {
         return _reservationService.findByDateRange(startDate);
     }
 
-    @GetMapping("/search/user/{userId}")
+    @GetMapping("/search/user/{clientId}")
     @Operation(summary = "Buscar reservas por ID de usuario", description = "Busca reservas asociadas a un usuario.")
-    public ResponseEntity<List<ReservationListarDTO>> findByUserId(@PathVariable String userName) {
-        return _reservationService.findByUserName(userName);
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reserva por id de cliente encontrada exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservation.class))),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos proporcionados", content = @Content)
+    })
+    public ResponseEntity<List<ReservationListarDTO>> findByUserId(@PathVariable Long clientId) {
+        return _reservationService.findByClientId(clientId);
     }
 
     @GetMapping("/search/service/{serviceId}")

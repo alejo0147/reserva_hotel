@@ -2,17 +2,18 @@ package com.algorian.hotel.implement;
 
 import com.algorian.hotel.entity.Reservation;
 import com.algorian.hotel.entity.ServiceT;
-import com.algorian.hotel.entity.Cliente;
+import com.algorian.hotel.entity.Client;
 import com.algorian.hotel.exception.DateValidationException;
 import com.algorian.hotel.models.*;
 import com.algorian.hotel.repository.IReservationRepository;
 import com.algorian.hotel.repository.IServiceRepository;
-import com.algorian.hotel.repository.IClienteRepository;
+import com.algorian.hotel.repository.IClientRepository;
 import com.algorian.hotel.service.IReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
@@ -26,15 +27,16 @@ import java.util.stream.Collectors;
 public class ReservationServiceImpl implements IReservationService {
 
     private final IReservationRepository _reservationRepository;
-    private final IClienteRepository _clienteRepository;
+    private final IClientRepository _clienteRepository;
     private final IServiceRepository _serviceRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseEntity<List<ReservationListarDTO>> findAll() {
         List<Reservation> reservationList = _reservationRepository.findAll();
         List<ReservationListarDTO> reservationDTOList = reservationList.stream()
                 .map(reservation -> {
-                    String userName = reservation.getCliente().getFullName();
+                    String userName = reservation.getClient().getFullName();
                     String serviceDescription = reservation.getServiceT().getDescription();
 
                     return ReservationListarDTO.builder()
@@ -51,13 +53,14 @@ public class ReservationServiceImpl implements IReservationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseEntity<?> findById(Long id) {
         Optional<Reservation> find = _reservationRepository.findById(id);
         if (find.isPresent()) {
             Reservation reservation = find.get();
 
             // Recuperar el usuario y servicio por sus IDs
-            Cliente user = _clienteRepository.findById(reservation.getCliente().getId())
+            Client user = _clienteRepository.findById(reservation.getClient().getId())
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
             ServiceT service = _serviceRepository.findById(reservation.getServiceT().getId())
@@ -81,13 +84,14 @@ public class ReservationServiceImpl implements IReservationService {
 
     @Validated(ReservationDTO.CreateGroup.class)
     @Override
+    @Transactional
     public ResponseEntity<?> save(@Validated ReservationDTO reservationDTO) {
 
         if (reservationDTO.getDateEnd().isBefore(reservationDTO.getDateStart())) {
             throw new DateValidationException("La fecha de finalización no puede ser anterior a la fecha de inicio.");
         }
 
-        Cliente cliente = _clienteRepository.findById(reservationDTO.getClienteId())
+        Client client = _clienteRepository.findById(reservationDTO.getClienteId())
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
         ServiceT serviceT = _serviceRepository.findById(reservationDTO.getServiceId())
@@ -98,7 +102,7 @@ public class ReservationServiceImpl implements IReservationService {
                 .dateReservation(LocalDate.now())
                 .dateStart(reservationDTO.getDateStart())
                 .dateEnd(reservationDTO.getDateEnd())
-                .cliente(cliente)
+                .client(client)
                 .serviceT(serviceT)
                 .build();
 
@@ -109,7 +113,7 @@ public class ReservationServiceImpl implements IReservationService {
                 .dateReservation(reservationSave.getDateReservation())
                 .dateStart(reservationSave.getDateStart())
                 .dateEnd(reservationSave.getDateEnd())
-                .userName(cliente.getFullName())
+                .userName(client.getFullName())
                 .serviceDescription(serviceT.getDescription())
                 .build();
 
@@ -119,6 +123,7 @@ public class ReservationServiceImpl implements IReservationService {
 
     @Validated(ReservationDTO.UpdateGroup.class)
     @Override
+    @Transactional
     public ResponseEntity<?> update(@Validated ReservationDTO reservationDTO, Long id) {
         Optional<Reservation> find = _reservationRepository.findById(id);
         if (find.isPresent()) {
@@ -128,16 +133,17 @@ public class ReservationServiceImpl implements IReservationService {
 
             Reservation reservation = find.get();
 
-            Cliente cliente = _clienteRepository.findById(reservationDTO.getClienteId())
+            Client client = _clienteRepository.findById(reservationDTO.getClienteId())
                     .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
             ServiceT serviceT = _serviceRepository.findById(reservationDTO.getServiceId())
                     .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
 
             // Actualizar la reserva
+            reservation.setDateReservation(LocalDate.now());
             reservation.setDateStart(reservationDTO.getDateStart());
             reservation.setDateEnd(reservationDTO.getDateEnd());
-            reservation.setCliente(cliente);
+            reservation.setClient(client);
             reservation.setServiceT(serviceT);
 
             Reservation updatedReservation = _reservationRepository.save(reservation);
@@ -148,7 +154,7 @@ public class ReservationServiceImpl implements IReservationService {
                     .dateReservation(updatedReservation.getDateReservation())
                     .dateStart(updatedReservation.getDateStart())
                     .dateEnd(updatedReservation.getDateEnd())
-                    .clienteId(cliente.getId())
+                    .clienteId(client.getId())
                     .serviceId(updatedReservation.getServiceT().getId())
                     .build();
 
@@ -158,19 +164,19 @@ public class ReservationServiceImpl implements IReservationService {
     }
 
 
-
     @Override
+    @Transactional
     public ResponseEntity<?> delete(Long id) {
         Optional<Reservation> find = _reservationRepository.findById(id);
-        if (find.isPresent()){
+        if (find.isPresent()) {
             _reservationRepository.deleteById(id);
-
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.notFound().build();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseEntity<List<ReservationDTO>> findByDateRange(LocalDate startDate) {
         List<Reservation> reservations = _reservationRepository.findByDateRange(startDate);
         List<ReservationDTO> reservationDTOs = reservations.stream()
@@ -185,37 +191,34 @@ public class ReservationServiceImpl implements IReservationService {
     }
 
     @Override
-    public ResponseEntity<List<ReservationListarDTO>> findByUserName(String userName) {
-        Optional<Cliente> userT = _clienteRepository.findByFullName(userName);
-        if (userT.isPresent()){
-            Long userId = userT.get().getId();
-            List<Reservation> reservations = _reservationRepository.findByUserTId(userId);
-            List<ReservationListarDTO> reservationDTOs = reservations.stream()
-                    .map(reservation -> {
-                        String userNam = reservation.getCliente().getFullName(); // Solo el nombre del usuario
-                        String serviceDescription = reservation.getServiceT().getDescription(); // Solo la descripción del servicio
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<ReservationListarDTO>> findByClientId(Long clientId) {
+        List<Reservation> reservations = _reservationRepository.findByClientId(clientId);
+        List<ReservationListarDTO> reservationDTOs = reservations.stream()
+                .map(reservation -> {
+                    String userNam = reservation.getClient().getFullName(); // Solo el nombre del usuario
+                    String serviceDescription = reservation.getServiceT().getDescription(); // Solo la descripción del servicio
 
-                        return ReservationListarDTO.builder()
-                                .id(reservation.getId())
-                                .dateReservation(reservation.getDateReservation())
-                                .dateStart(reservation.getDateStart())
-                                .dateEnd(reservation.getDateEnd())
-                                .userName(userNam)
-                                .serviceDescription(serviceDescription)
-                                .build();
-                    })
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(reservationDTOs);
-        }
-        return ResponseEntity.noContent().build();
+                    return ReservationListarDTO.builder()
+                            .id(reservation.getId())
+                            .dateReservation(reservation.getDateReservation())
+                            .dateStart(reservation.getDateStart())
+                            .dateEnd(reservation.getDateEnd())
+                            .userName(userNam)
+                            .serviceDescription(serviceDescription)
+                            .build();
+                })
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(reservationDTOs);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseEntity<List<ReservationListarDTO>> findByServiceId(Long serviceId) {
         List<Reservation> reservations = _reservationRepository.findByServiceTId(serviceId);
         List<ReservationListarDTO> reservationDTOs = reservations.stream()
                 .map(reservation -> {
-                    String userName = reservation.getCliente().getFullName(); // Solo el nombre del usuario
+                    String userName = reservation.getClient().getFullName(); // Solo el nombre del usuario
                     String serviceDescription = reservation.getServiceT().getDescription(); // Solo la descripción del servicio
 
                     return ReservationListarDTO.builder()

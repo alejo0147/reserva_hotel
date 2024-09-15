@@ -21,7 +21,7 @@ public interface IReservationService {
 
     ResponseEntity<List<ReservationDTO>> findByDateRange(LocalDate startDate);
 
-    ResponseEntity<List<ReservationListarDTO>> findByUserName(String userName);
+    ResponseEntity<List<ReservationListarDTO>> findByClientId(Long clientId);
 
     ResponseEntity<List<ReservationListarDTO>> findByServiceId(Long serviceId);
 

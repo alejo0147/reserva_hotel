@@ -1,6 +1,5 @@
 package com.algorian.hotel.service;
 
-import com.algorian.hotel.models.ClienteDTO;
 import com.algorian.hotel.models.UserTDTO;
 import org.springframework.http.ResponseEntity;
 

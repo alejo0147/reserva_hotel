@@ -34,8 +34,8 @@ public class Reservation {
     private LocalDate dateEnd;
 
     @ManyToOne
-    @JoinColumn(name = "cliente_id")
-    private Cliente cliente;
+    @JoinColumn(name = "client_id")
+    private Client client;
 
     @ManyToOne
     @JoinColumn(name = "service_id")

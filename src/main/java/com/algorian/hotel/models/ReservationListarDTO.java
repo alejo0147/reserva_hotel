@@ -18,15 +18,14 @@ import java.time.LocalDate;
 @ToString
 public class ReservationListarDTO {
 
-    @NotNull
+
     private Long id;
 
     private LocalDate dateReservation;
 
-    @NotNull
+
     private LocalDate dateStart;
 
-    @NotNull
     private LocalDate dateEnd;
 
     private String userName;

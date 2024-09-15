@@ -1,18 +1,18 @@
 package com.algorian.hotel.service;
 
-import com.algorian.hotel.models.ClienteDTO;
+import com.algorian.hotel.models.ClientDTO;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
-public interface IClienteService {
+public interface IClientService {
 
-    ResponseEntity<List<ClienteDTO>> findAll();
+    ResponseEntity<List<ClientDTO>> findAll();
 
     ResponseEntity<?> findById(Long id);
 
-    ResponseEntity<?> save(ClienteDTO userTDTO);
+    ResponseEntity<?> save(ClientDTO userTDTO);
 
-    ResponseEntity<?> update(ClienteDTO userTDTO, Long id);
+    ResponseEntity<?> update(ClientDTO userTDTO, Long id);
 
 }
