@@ -87,8 +87,8 @@ public class ReservationServiceImpl implements IReservationService {
             throw new DateValidationException("La fecha de finalización no puede ser anterior a la fecha de inicio.");
         }
 
-        Cliente cliente = _clienteRepository.findByEmail(reservationDTO.getCliente().getEmail())
-                .orElseGet(() -> _clienteRepository.save(reservationDTO.getCliente()));
+        Cliente cliente = _clienteRepository.findById(reservationDTO.getClienteId())
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
         ServiceT serviceT = _serviceRepository.findById(reservationDTO.getServiceId())
                 .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
@@ -110,12 +110,12 @@ public class ReservationServiceImpl implements IReservationService {
                 .dateStart(reservationSave.getDateStart())
                 .dateEnd(reservationSave.getDateEnd())
                 .userName(cliente.getFullName())
-                .serviceDescription(reservationSave.getServiceT().getDescription())
+                .serviceDescription(serviceT.getDescription())
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(reservationSaveDTO);
-
     }
+
 
     @Validated(ReservationDTO.UpdateGroup.class)
     @Override
@@ -128,22 +128,19 @@ public class ReservationServiceImpl implements IReservationService {
 
             Reservation reservation = find.get();
 
-            Cliente cliente = findOrCreateUser(reservationDTO.getCliente());
+            Cliente cliente = _clienteRepository.findById(reservationDTO.getClienteId())
+                    .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
-            Optional<ServiceT> findServ = _serviceRepository.findById(reservationDTO.getServiceId());
-            if (findServ.isEmpty()) return ResponseEntity.noContent().build();
-
-            ServiceT serviceT = findServ.get();
-
-            Reservation reservation1 = find.get();
+            ServiceT serviceT = _serviceRepository.findById(reservationDTO.getServiceId())
+                    .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
 
             // Actualizar la reserva
-            reservation1.setDateStart(reservationDTO.getDateStart());
-            reservation1.setDateEnd(reservationDTO.getDateEnd());
-            reservation1.setCliente(cliente);
-            reservation1.setServiceT(serviceT);
+            reservation.setDateStart(reservationDTO.getDateStart());
+            reservation.setDateEnd(reservationDTO.getDateEnd());
+            reservation.setCliente(cliente);
+            reservation.setServiceT(serviceT);
 
-            Reservation updatedReservation = _reservationRepository.save(reservation1);
+            Reservation updatedReservation = _reservationRepository.save(reservation);
 
             // Devolver los detalles de la reserva actualizada
             ReservationDTO reservationSaveDTO = ReservationDTO.builder()
@@ -151,7 +148,7 @@ public class ReservationServiceImpl implements IReservationService {
                     .dateReservation(updatedReservation.getDateReservation())
                     .dateStart(updatedReservation.getDateStart())
                     .dateEnd(updatedReservation.getDateEnd())
-                    .cliente(cliente)
+                    .clienteId(cliente.getId())
                     .serviceId(updatedReservation.getServiceT().getId())
                     .build();
 
@@ -159,6 +156,7 @@ public class ReservationServiceImpl implements IReservationService {
         }
         return ResponseEntity.noContent().build();
     }
+
 
 
     @Override
