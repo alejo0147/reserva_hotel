@@ -87,6 +87,7 @@ public class ClienteServiceimpl implements IClienteService {
             Cliente updatedCliente = _userTRepository.save(cliente);
 
             ClienteDTO updatedUserTDTO = ClienteDTO.builder()
+                    .id(updatedCliente.getId())
                     .fullName(updatedCliente.getFullName())
                     .email(updatedCliente.getEmail())
                     .build();

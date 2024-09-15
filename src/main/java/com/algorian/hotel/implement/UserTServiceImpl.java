@@ -84,6 +84,7 @@ public class UserTServiceImpl implements IUserTService {
             UserT userTSave = _userTRepository.save(userT);
 
             UserTDTO userTDTOSave = UserTDTO.builder()
+                    .id(userTSave.getId())
                     .email(userTSave.getEmail())
                     .build();
 

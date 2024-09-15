@@ -1,6 +1,5 @@
 package com.algorian.hotel.models;
 
-import com.algorian.hotel.entity.Cliente;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,8 +29,8 @@ public class ReservationDTO {
     @NotNull(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'dateEnd' no puede estar en blanco.")
     private LocalDate dateEnd;
 
-    @NotNull(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'userId' es obligatorio.")
-    private Cliente cliente;
+    @NotNull(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'clienteId' es obligatorio.")
+    private Long clienteId;
 
     @NotNull(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'serviceId' es obligatorio.")
     private Long serviceId;

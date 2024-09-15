@@ -18,12 +18,12 @@ import lombok.ToString;
 @ToString
 public class ClienteDTO {
 
-    @NotNull(groups = UpdateGroup.class, message = "El campo 'id' es obligatorio para la actualización.")
     private Long id;
 
     @NotBlank(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'fullName' no puede estar en blanco.")
     private String fullName;
 
+    @NotBlank(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'email' no puede estar en blanco.")
     @Email(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'email' debe ser un email válido.")
     private String email;
 
