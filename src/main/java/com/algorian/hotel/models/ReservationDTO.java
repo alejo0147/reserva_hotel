@@ -18,7 +18,6 @@ import java.time.LocalDate;
 @ToString
 public class ReservationDTO {
 
-    @NotNull(groups = UpdateGroup.class, message = "El campo 'id' es obligatorio para la actualización.")
     private Long id;
 
     private LocalDate dateReservation;
