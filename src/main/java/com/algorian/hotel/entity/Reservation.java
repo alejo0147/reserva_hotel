@@ -39,6 +39,6 @@ public class Reservation {
 
     @ManyToOne
     @JoinColumn(name = "service_id")
-    private ServiceT serviceT;
+    private ServiceR service;
 
 }

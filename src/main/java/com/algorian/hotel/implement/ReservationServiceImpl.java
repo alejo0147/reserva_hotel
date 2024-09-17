@@ -1,16 +1,14 @@
 package com.algorian.hotel.implement;
 
-import com.algorian.hotel.entity.Reservation;
-import com.algorian.hotel.entity.ServiceT;
 import com.algorian.hotel.entity.Client;
-import com.algorian.hotel.exception.DateValidationException;
+import com.algorian.hotel.entity.Reservation;
+import com.algorian.hotel.entity.ServiceR;
 import com.algorian.hotel.models.*;
 import com.algorian.hotel.repository.IReservationRepository;
 import com.algorian.hotel.repository.IServiceRepository;
 import com.algorian.hotel.repository.IClientRepository;
 import com.algorian.hotel.service.IReservationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,137 +28,71 @@ public class ReservationServiceImpl implements IReservationService {
     private final IClientRepository _clienteRepository;
     private final IServiceRepository _serviceRepository;
 
-    @Override
-    @Transactional(readOnly = true)
-    public ResponseEntity<List<ReservationListarDTO>> findAll() {
-        List<Reservation> reservationList = _reservationRepository.findAll();
-        List<ReservationListarDTO> reservationDTOList = reservationList.stream()
-                .map(reservation -> {
-                    String userName = reservation.getClient().getFullName();
-                    String serviceDescription = reservation.getServiceT().getDescription();
 
-                    return ReservationListarDTO.builder()
-                            .id(reservation.getId())
-                            .dateReservation(reservation.getDateReservation())
-                            .dateStart(reservation.getDateStart())
-                            .dateEnd(reservation.getDateEnd())
-                            .userName(userName)
-                            .serviceDescription(serviceDescription)
-                            .build();
-                })
+    @Override
+    public ResponseEntity<List<ReservationDTO>> findAll() {
+        List<Reservation> reservations = _reservationRepository.findAll();
+        List<ReservationDTO> dtoList = reservations.stream()
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(reservationDTOList);
+        return ResponseEntity.ok(dtoList);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ResponseEntity<?> findById(Long id) {
-        Optional<Reservation> find = _reservationRepository.findById(id);
-        if (find.isPresent()) {
-            Reservation reservation = find.get();
-
-            // Recuperar el usuario y servicio por sus IDs
-            Client user = _clienteRepository.findById(reservation.getClient().getId())
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-            ServiceT service = _serviceRepository.findById(reservation.getServiceT().getId())
-                    .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
-
-            // Crear el DTO de ReservationDetailDTO con los objetos completos
-            ReservationDetailDTO reservationDetailDTO = ReservationDetailDTO.builder()
-                    .id(reservation.getId())
-                    .dateReservation(reservation.getDateReservation())
-                    .dateStart(reservation.getDateStart())
-                    .dateEnd(reservation.getDateEnd())
-                    .userName(user.getFullName())
-                    .serviceDescription(service.getDescription())
-                    .build();
-
-            return ResponseEntity.ok(reservationDetailDTO);
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<ReservationDTO> findById(Long id) {
+        return _reservationRepository.findById(id)
+                .map(this::convertToDTO)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());  // Si no encuentra, devuelve 404
     }
 
 
-    @Validated(ReservationDTO.CreateGroup.class)
+    @Validated(ReservationCreateDTO.CreateGroup.class)
     @Override
     @Transactional
-    public ResponseEntity<?> save(@Validated ReservationDTO reservationDTO) {
+    public ResponseEntity<?> save(@Validated ReservationCreateDTO reservationDTO) {
+        // Convertir el DTO a entidad
+        Reservation reservation = convertToEntity(reservationDTO);
 
-        if (reservationDTO.getDateEnd().isBefore(reservationDTO.getDateStart())) {
-            throw new DateValidationException("La fecha de finalización no puede ser anterior a la fecha de inicio.");
-        }
+        // Guardar la entidad en la base de datos
+        Reservation savedReservation = _reservationRepository.save(reservation);
 
-        Client client = _clienteRepository.findById(reservationDTO.getClienteId())
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+        // Convertir la entidad guardada de vuelta a DTO
+        ReservationDTO savedReservationDTO = convertToDTO(savedReservation);
 
-        ServiceT serviceT = _serviceRepository.findById(reservationDTO.getServiceId())
-                .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
-
-        // Crear y guardar la reserva
-        Reservation reservation = Reservation.builder()
-                .dateReservation(LocalDate.now())
-                .dateStart(reservationDTO.getDateStart())
-                .dateEnd(reservationDTO.getDateEnd())
-                .client(client)
-                .serviceT(serviceT)
-                .build();
-
-        Reservation reservationSave = _reservationRepository.save(reservation);
-
-        ReservationDetailDTO reservationSaveDTO = ReservationDetailDTO.builder()
-                .id(reservationSave.getId())
-                .dateReservation(reservationSave.getDateReservation())
-                .dateStart(reservationSave.getDateStart())
-                .dateEnd(reservationSave.getDateEnd())
-                .userName(client.getFullName())
-                .serviceDescription(serviceT.getDescription())
-                .build();
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(reservationSaveDTO);
+        // Retornar la respuesta con el DTO guardado
+        return ResponseEntity.ok(savedReservationDTO);
     }
 
 
-    @Validated(ReservationDTO.UpdateGroup.class)
+    @Validated(ReservationCreateDTO.UpdateGroup.class)
     @Override
     @Transactional
-    public ResponseEntity<?> update(@Validated ReservationDTO reservationDTO, Long id) {
-        Optional<Reservation> find = _reservationRepository.findById(id);
-        if (find.isPresent()) {
-            if (reservationDTO.getDateEnd().isBefore(reservationDTO.getDateStart())) {
-                throw new DateValidationException("La fecha de finalización no puede ser anterior a la fecha de inicio.");
-            }
+    public ResponseEntity<?> update(@Validated ReservationCreateDTO reservationDTO, Long id) {
+        // Buscar la reserva existente por ID
+        return _reservationRepository.findById(id)
+                .map(existingReservation -> {
+                    // Actualizar los campos de la reserva con los datos del DTO
+                    existingReservation.setDateReservation(reservationDTO.getDateReservation());
+                    existingReservation.setDateStart(reservationDTO.getDateStart());
+                    existingReservation.setDateEnd(reservationDTO.getDateEnd());
+                    // Actualizar el cliente utilizando el ID del cliente en el DTO
+                    existingReservation.setClient(Client.builder().id(reservationDTO.getClientId()).build());
 
-            Reservation reservation = find.get();
+                    // Actualizar el servicio utilizando el ID del servicio en el DTO
+                    existingReservation.setService(ServiceR.builder().id(reservationDTO.getServiceId()).build());
 
-            Client client = _clienteRepository.findById(reservationDTO.getClienteId())
-                    .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+                    // Guardar la reserva actualizada en la base de datos
+                    Reservation updatedReservation = _reservationRepository.save(existingReservation);
 
-            ServiceT serviceT = _serviceRepository.findById(reservationDTO.getServiceId())
-                    .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
+                    // Convertir la entidad actualizada de vuelta a DTO si es necesario
+                    ReservationDTO updatedReservationDTO = convertToDTO(updatedReservation);
 
-            // Actualizar la reserva
-            reservation.setDateReservation(LocalDate.now());
-            reservation.setDateStart(reservationDTO.getDateStart());
-            reservation.setDateEnd(reservationDTO.getDateEnd());
-            reservation.setClient(client);
-            reservation.setServiceT(serviceT);
-
-            Reservation updatedReservation = _reservationRepository.save(reservation);
-
-            // Devolver los detalles de la reserva actualizada
-            ReservationDTO reservationSaveDTO = ReservationDTO.builder()
-                    .id(updatedReservation.getId())
-                    .dateReservation(updatedReservation.getDateReservation())
-                    .dateStart(updatedReservation.getDateStart())
-                    .dateEnd(updatedReservation.getDateEnd())
-                    .clienteId(client.getId())
-                    .serviceId(updatedReservation.getServiceT().getId())
-                    .build();
-
-            return ResponseEntity.status(HttpStatus.OK).body(reservationSaveDTO);
-        }
-        return ResponseEntity.noContent().build();
+                    // Retornar la respuesta con el DTO actualizado
+                    return ResponseEntity.ok(updatedReservationDTO);
+                })
+                .orElse(ResponseEntity.notFound().build()); // Si no encuentra, devolver 404
     }
 
 
@@ -176,62 +108,92 @@ public class ReservationServiceImpl implements IReservationService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public ResponseEntity<List<ReservationDTO>> findByDateRange(LocalDate startDate) {
-        List<Reservation> reservations = _reservationRepository.findByDateRange(startDate);
-        List<ReservationDTO> reservationDTOs = reservations.stream()
-                .map(reservation -> ReservationDTO.builder()
-                        .id(reservation.getId())
-                        .dateReservation(reservation.getDateReservation())
-                        .dateStart(reservation.getDateStart())
-                        .dateEnd(reservation.getDateEnd())
-                        .build())
+    public ResponseEntity<List<ReservationDTO>> findByDate(LocalDate date) {
+        List<Reservation> reservations = _reservationRepository.findByDate(date);
+        List<ReservationDTO> dtoList = reservations.stream()
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(reservationDTOs);
+        return ResponseEntity.ok(dtoList);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public ResponseEntity<List<ReservationListarDTO>> findByClientId(Long clientId) {
+    public ResponseEntity<List<ReservationDTO>> findByClient(Long clientId) {
         List<Reservation> reservations = _reservationRepository.findByClientId(clientId);
-        List<ReservationListarDTO> reservationDTOs = reservations.stream()
-                .map(reservation -> {
-                    String userNam = reservation.getClient().getFullName(); // Solo el nombre del usuario
-                    String serviceDescription = reservation.getServiceT().getDescription(); // Solo la descripción del servicio
-
-                    return ReservationListarDTO.builder()
-                            .id(reservation.getId())
-                            .dateReservation(reservation.getDateReservation())
-                            .dateStart(reservation.getDateStart())
-                            .dateEnd(reservation.getDateEnd())
-                            .userName(userNam)
-                            .serviceDescription(serviceDescription)
-                            .build();
-                })
+        List<ReservationDTO> dtoList = reservations.stream()
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(reservationDTOs);
+        return ResponseEntity.ok(dtoList);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public ResponseEntity<List<ReservationListarDTO>> findByServiceId(Long serviceId) {
-        List<Reservation> reservations = _reservationRepository.findByServiceTId(serviceId);
-        List<ReservationListarDTO> reservationDTOs = reservations.stream()
-                .map(reservation -> {
-                    String userName = reservation.getClient().getFullName(); // Solo el nombre del usuario
-                    String serviceDescription = reservation.getServiceT().getDescription(); // Solo la descripción del servicio
-
-                    return ReservationListarDTO.builder()
-                            .id(reservation.getId())
-                            .dateReservation(reservation.getDateReservation())
-                            .dateStart(reservation.getDateStart())
-                            .dateEnd(reservation.getDateEnd())
-                            .userName(userName)
-                            .serviceDescription(serviceDescription)
-                            .build();
-                })
+    public ResponseEntity<List<ReservationDTO>> findByService(Long serviceId) {
+        List<Reservation> reservations = _reservationRepository.findByServiceId(serviceId);
+        List<ReservationDTO> dtoList = reservations.stream()
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(reservationDTOs);
+        return ResponseEntity.ok(dtoList);
+    }
+
+    // Método de conversión de DTO a Entidad
+    private Reservation convertToEntity(ReservationCreateDTO reservationDTO) {
+        return Reservation.builder()
+                .id(reservationDTO.getId())
+                .dateReservation(reservationDTO.getDateReservation())
+                .dateStart(reservationDTO.getDateStart())
+                .dateEnd(reservationDTO.getDateEnd())
+                // Asignamos el cliente utilizando su ID
+                .client(Client.builder().id(reservationDTO.getClientId()).build())
+                // Asignamos el servicio utilizando su ID
+                .service(ServiceR.builder().id(reservationDTO.getServiceId()).build())
+                .build();
+    }
+
+    // Método de conversión de Entidad a DTO
+    private ReservationDTO convertToDTO(Reservation reservation) {
+        return ReservationDTO.builder()
+                .id(reservation.getId())
+                .dateReservation(reservation.getDateReservation())
+                .dateStart(reservation.getDateStart())
+                .dateEnd(reservation.getDateEnd())
+                .client(convertToClientDTO(reservation.getClient()))
+                .service(convertToServiceDTO(reservation.getService()))
+                .build();
+    }
+
+    // Método para convertir Client a DTO
+    private ClientDTO convertToClientDTO(Client client) {
+        return ClientDTO.builder()
+                .id(client.getId())
+                .fullName(client.getFullName())
+                .email(client.getEmail())
+                .build();
+    }
+
+    // Método para convertir de DTO a Client
+    private Client convertToEntity(ClientDTO clientDTO) {
+        return Client.builder()
+                .id(clientDTO.getId())
+                .fullName(clientDTO.getFullName())
+                .email(clientDTO.getEmail())
+                .build();
+    }
+
+    // Método para convertir ServiceR a DTO
+    private ServiceDTO convertToServiceDTO(ServiceR service) {
+        return ServiceDTO.builder()
+                .id(service.getId())
+                .name(service.getName())
+                .description(service.getDescription())
+                .build();
+    }
+
+    // Método para de DTO a ServiceR
+    private ServiceR convertToEntity(ServiceDTO serviceDTO) {
+        return ServiceR.builder()
+                .id(serviceDTO.getId())
+                .name(serviceDTO.getName())
+                .description(serviceDTO.getDescription())
+                .build();
     }
 
 }

@@ -26,6 +26,8 @@ public class ClientDTO {
     @Email(groups = {CreateGroup.class, UpdateGroup.class}, message = "El campo 'email' debe ser un email válido.")
     private String email;
 
+    // private List<ReservationDTO> reservations;
+
     public interface CreateGroup {}
 
     public interface UpdateGroup {}

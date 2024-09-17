@@ -1,13 +1,12 @@
 package com.algorian.hotel.implement;
 
-import com.algorian.hotel.entity.ServiceT;
+import com.algorian.hotel.entity.ServiceR;
 import com.algorian.hotel.models.ServiceDTO;
 import com.algorian.hotel.repository.IServiceRepository;
 import com.algorian.hotel.service.IServiceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 
-@Service
+@org.springframework.stereotype.Service
 @Validated
 public class ServiceServiceImpl implements IServiceService {
 
@@ -24,7 +23,7 @@ public class ServiceServiceImpl implements IServiceService {
 
     @Override
     public ResponseEntity<List<ServiceDTO>> findAll() {
-        List<ServiceT> serviceList = _serviceRepository.findAll();
+        List<ServiceR> serviceList = _serviceRepository.findAll();
         List<ServiceDTO> serviceDTOList = serviceList.stream()
                 .map(serviceT  -> ServiceDTO.builder()
                         .id(serviceT.getId())
@@ -37,14 +36,14 @@ public class ServiceServiceImpl implements IServiceService {
 
     @Override
     public ResponseEntity<?> findById(Long id) {
-        Optional<ServiceT> find = _serviceRepository.findById(id);
+        Optional<ServiceR> find = _serviceRepository.findById(id);
         if (find.isPresent()){
-            ServiceT serviceT = find.get();
+            ServiceR service = find.get();
 
             ServiceDTO serviceDTO = ServiceDTO.builder()
-                    .id(serviceT.getId())
-                    .name(serviceT.getName())
-                    .description(serviceT.getDescription())
+                    .id(service.getId())
+                    .name(service.getName())
+                    .description(service.getDescription())
                     .build();
 
             return ResponseEntity.ok(serviceDTO);
@@ -54,11 +53,11 @@ public class ServiceServiceImpl implements IServiceService {
 
     @Override
     public ResponseEntity<?> save(@Validated(ServiceDTO.CreateGroup.class) ServiceDTO serviceDTO) {
-        ServiceT serviceT = ServiceT.builder()
+        ServiceR service = ServiceR.builder()
                 .name(serviceDTO.getName())
                 .description(serviceDTO.getDescription())
                 .build();
-        ServiceT serviceSave = _serviceRepository.save(serviceT);
+        ServiceR serviceSave = _serviceRepository.save(service);
 
         ServiceDTO serviceSaveDTO = ServiceDTO.builder()
                 .id(serviceSave.getId())
@@ -71,13 +70,13 @@ public class ServiceServiceImpl implements IServiceService {
 
     @Override
     public ResponseEntity<?> update(@Validated(ServiceDTO.UpdateGroup.class) ServiceDTO serviceDTO, Long id) {
-        Optional<ServiceT> find = _serviceRepository.findById(id);
+        Optional<ServiceR> find = _serviceRepository.findById(id);
         if (find.isPresent()){
-            ServiceT serviceT = find.get();
-            serviceT.setName(serviceDTO.getName());
-            serviceT.setDescription(serviceDTO.getDescription());
+            ServiceR service = find.get();
+            service.setName(serviceDTO.getName());
+            service.setDescription(serviceDTO.getDescription());
 
-            ServiceT updateService = _serviceRepository.save(serviceT);
+            ServiceR updateService = _serviceRepository.save(service);
 
             ServiceDTO updateServiceDTO = ServiceDTO.builder()
                     .id(updateService.getId())
@@ -92,7 +91,7 @@ public class ServiceServiceImpl implements IServiceService {
 
     @Override
     public ResponseEntity<?> delete(Long id) {
-        Optional<ServiceT> find = _serviceRepository.findById(id);
+        Optional<ServiceR> find = _serviceRepository.findById(id);
         if (find.isPresent()){
             _serviceRepository.deleteById(id);
             return ResponseEntity.noContent().build();
