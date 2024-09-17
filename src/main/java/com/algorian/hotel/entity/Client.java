@@ -3,7 +3,7 @@ package com.algorian.hotel.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,6 +27,6 @@ public class Client {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Set<Reservation> reservationset;
+    private List<Reservation> reservations;
 
 }

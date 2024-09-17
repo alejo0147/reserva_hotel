@@ -16,7 +16,7 @@ import lombok.ToString;
 @ToString
 
 @Entity
-public class ServiceT {
+public class ServiceR {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

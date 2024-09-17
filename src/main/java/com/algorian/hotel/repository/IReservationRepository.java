@@ -11,13 +11,13 @@ import java.util.List;
 public interface IReservationRepository extends JpaRepository<Reservation, Long> {
 
     @Query("SELECT r FROM Reservation r WHERE r.dateReservation = :startDate")
-    List<Reservation> findByDateRange(@Param("startDate") LocalDate startDate);
+    List<Reservation> findByDate(@Param("startDate") LocalDate startDate);
 
     @Query("SELECT r FROM Reservation r WHERE r.client.id = :clientId")
     List<Reservation> findByClientId(@Param("clientId") Long clientId);
 
-    @Query("SELECT r FROM Reservation r WHERE r.serviceT.id = :serviceId")
-    List<Reservation> findByServiceTId(@Param("serviceId") Long serviceId);
+    @Query("SELECT r FROM Reservation r WHERE r.service.id = :serviceId")
+    List<Reservation> findByServiceId(@Param("serviceId") Long serviceId);
 
     List<Reservation> findByDateStartLessThanEqualAndDateEndGreaterThanEqual(LocalDate endDate, LocalDate startDate);
 
