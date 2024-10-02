@@ -13,6 +13,8 @@ import java.util.List;
 
 @RequiredArgsConstructor
 
+@CrossOrigin(origins = "http://localhost:4200")
+
 @RestController
 @RequestMapping("/client")
 @Tag(name = "Clientes", description = "Gestión de clientes")

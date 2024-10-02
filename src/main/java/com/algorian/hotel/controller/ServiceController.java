@@ -13,6 +13,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/service")
 @Tag(name = "Servicios", description = "Gestión de servicios")

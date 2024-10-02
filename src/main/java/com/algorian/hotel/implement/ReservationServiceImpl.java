@@ -74,12 +74,11 @@ public class ReservationServiceImpl implements IReservationService {
         return _reservationRepository.findById(id)
                 .map(existingReservation -> {
                     // Actualizar los campos de la reserva con los datos del DTO
-                    existingReservation.setDateReservation(reservationDTO.getDateReservation());
+                    existingReservation.setDateReservation(LocalDate.now());
                     existingReservation.setDateStart(reservationDTO.getDateStart());
                     existingReservation.setDateEnd(reservationDTO.getDateEnd());
                     // Actualizar el cliente utilizando el ID del cliente en el DTO
                     existingReservation.setClient(Client.builder().id(reservationDTO.getClientId()).build());
-
                     // Actualizar el servicio utilizando el ID del servicio en el DTO
                     existingReservation.setService(ServiceR.builder().id(reservationDTO.getServiceId()).build());
 
@@ -138,7 +137,7 @@ public class ReservationServiceImpl implements IReservationService {
     private Reservation convertToEntity(ReservationCreateDTO reservationDTO) {
         return Reservation.builder()
                 .id(reservationDTO.getId())
-                .dateReservation(reservationDTO.getDateReservation())
+                .dateReservation(LocalDate.now())
                 .dateStart(reservationDTO.getDateStart())
                 .dateEnd(reservationDTO.getDateEnd())
                 // Asignamos el cliente utilizando su ID
